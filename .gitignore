@@ -68,3 +68,4 @@ dataset/
 
 # python 
 __pycache__/
+test.*
