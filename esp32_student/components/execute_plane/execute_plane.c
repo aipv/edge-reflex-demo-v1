@@ -7,15 +7,30 @@
 #include "support_plane.h"
 #include "observe_plane.h"
 #include "execute_plane.h"
+#include "mfcc_feature.h"
 #include "test_mfcc_feature.h"
 
 static const char *TAG = "EXECUTE_PLANE";
 
 static size_t count = 16000;
 static char data_buffer[64000];
-static char send_buffer[32000];
+static char send_buffer[37096];
 static int32_t *pcm_data = (int32_t *)(data_buffer);
 static int16_t *pcm16_data = (int16_t *)(send_buffer);
+
+esp_err_t pcm16_mfcc_preprocess(int16_t *input_pcm, int count)
+{
+    int16_t *iptr = input_pcm;
+    float *optr = (float *)(input_pcm + count);
+
+    for (int i = 0; i < MFCC_COEF_FRAME; i++)
+    {
+        mfcc_feature_frame_process(iptr, optr);
+        iptr += MFCC_HOP_LENGTH;
+        optr += MFCC_COEF_COUNT;
+    }
+    return ESP_OK;
+}
 
 void application_button_boot_callback(uint8_t gpio_num)
 {
@@ -25,10 +40,13 @@ void application_button_boot_callback(uint8_t gpio_num)
     i2s_audio_play_data(pcm_data, count);
     ESP_LOGI(TAG, "Success play %d samples!", count);
     i2s_audio_convert_data(pcm_data, pcm16_data, count);
-
-    observe_plane_data_report(pcm16_data, OBSERVE_DATA_PCM16, count);
-
     ESP_LOGI(TAG, "Success convert %d samples!", count);
+
+    pcm16_mfcc_preprocess(pcm16_data, count);
+    ESP_LOGI(TAG, "Success MFCC feature %d samples!", count);
+
+    network_socket_data_publish(pcm16_data, 37096);
+    ESP_LOGI(TAG, "Success Publish feature %d samples!", count);
 }
 
 void application_button_up_callback(uint8_t gpio_num)
