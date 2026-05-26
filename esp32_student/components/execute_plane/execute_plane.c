@@ -33,11 +33,13 @@ void application_button_boot_callback(uint8_t gpio_num)
 void application_button_up_callback(uint8_t gpio_num)
 {
     ESP_LOGW(TAG, ">>> Button Up (GPIO %d) Pressed! - Executing action B.", gpio_num);
+    i2s_audio_stream_data(1);
 }
 
 void application_button_down_callback(uint8_t gpio_num)
 {
     ESP_LOGW(TAG, ">>> Button Down (GPIO %d) Pressed! - Executing action C.", gpio_num);
+    i2s_audio_stop_stream();
 }
 
 esp_err_t execute_plane_init(void)

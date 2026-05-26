@@ -3,12 +3,19 @@
 #include "driver/i2s_std.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "network_socket.h"
 #include "i2s_audio.h"
 
 static const char *TAG = "I2S_AUDIO";
 
 static i2s_chan_handle_t rx_handle = NULL;
 static i2s_chan_handle_t tx_handle = NULL;
+
+static int16_t  i2s_audio_pcm16_buffer[I2S_AUDIO_BUFFER_SAMPLES];
+static int32_t  i2s_audio_raw_buffer[I2S_AUDIO_BUFFER_SAMPLES];
+static int32_t  i2s_audio_data_stream_flag = false;
+static int32_t  i2s_audio_data_convert_flag = false;
+static TaskHandle_t i2s_audio_stream_task_handle = NULL;
 
 // ================== 错误检查 ==================
 static void check_esp_err(esp_err_t err, const char* msg)
@@ -158,5 +165,79 @@ esp_err_t i2s_audio_play_data(int32_t *buffer, int samples)
         return ESP_FAIL;
     }
     check_esp_err(i2s_channel_disable(tx_handle), "i2s_channel_disable_tx");
+    return ESP_OK;
+}
+
+void i2s_audio_data_stream_task(void *arg)
+{
+    char *send_buffer = i2s_audio_data_convert_flag ? (char *)i2s_audio_pcm16_buffer : (char *)i2s_audio_raw_buffer;
+    size_t bytes_to_send = i2s_audio_data_convert_flag ? I2S_AUDIO_PCM16_SIZE : I2S_AUDIO_BUFFER_SIZE;
+    size_t bytes_to_read = I2S_AUDIO_BUFFER_SIZE;
+    size_t bytes_read = 0;
+    size_t bytes_sent = 0;
+    int i = 0;
+
+    ESP_LOGI(TAG, "i2s_audio_data_stream_task() start!");
+
+    while (i2s_audio_data_stream_flag)
+    {
+        check_esp_err(i2s_channel_read(rx_handle, i2s_audio_raw_buffer, bytes_to_read, &bytes_read, pdMS_TO_TICKS(1000)), "i2s_channel_read");
+        if (bytes_read != bytes_to_read)
+        {
+            ESP_LOGE(TAG, "Read data: expected %u bytes, got %u bytes", bytes_to_read, bytes_read);
+            i2s_audio_stream_task_handle = NULL;
+            vTaskDelete(NULL);
+            return;
+        }
+
+        if (i2s_audio_data_convert_flag)
+        {
+            i2s_audio_convert_data(i2s_audio_raw_buffer, i2s_audio_pcm16_buffer, I2S_AUDIO_BUFFER_SAMPLES);
+        }
+
+        bytes_sent = network_socket_send(send_buffer, bytes_to_send);
+        if (bytes_sent != bytes_to_send)
+        {
+            ESP_LOGE(TAG, "Send data: expected %u bytes, sent %u bytes", bytes_to_send, bytes_sent);
+            i2s_audio_stream_task_handle = NULL;
+            vTaskDelete(NULL);
+            return;
+        }
+        i++;
+        if ((i % 160) == 0)
+            ESP_LOGI(TAG, "Succcessfully sent %d samples!", i * 1024);
+    }
+
+    network_socket_close();
+    ESP_LOGI(TAG, "i2s_audio_data_stream_task() stop!");
+
+    i2s_audio_stream_task_handle = NULL;
+    vTaskDelete(NULL);
+}
+
+esp_err_t i2s_audio_stream_data(int pcm16_flag)
+{
+    if (i2s_audio_stream_task_handle)
+    {
+        ESP_LOGI(TAG, "Stopping I2S Audio streaming.....");
+        i2s_audio_data_stream_flag = false;
+        return ESP_OK;
+    }
+
+    if (network_socket_init() < 0)
+    {
+        ESP_LOGE(TAG, "Failed to connect to host.");
+        return ESP_FAIL;
+    }
+
+    i2s_audio_data_stream_flag = true;
+    i2s_audio_data_convert_flag = pcm16_flag;
+    xTaskCreate(i2s_audio_data_stream_task, "AudioStreamTask", 4096, NULL, 5, &i2s_audio_stream_task_handle);
+    return ESP_OK;
+}
+
+esp_err_t i2s_audio_stop_stream()
+{
+    i2s_audio_data_stream_flag = false;
     return ESP_OK;
 }
