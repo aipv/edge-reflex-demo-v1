@@ -4,6 +4,8 @@
 #include "i2s_audio.h"
 #include "gpio_button.h"
 #include "network_socket.h"
+#include "support_plane.h"
+#include "observe_plane.h"
 #include "execute_plane.h"
 
 static const char *TAG = "EXECUTE_PLANE";
@@ -22,6 +24,9 @@ void application_button_boot_callback(uint8_t gpio_num)
     i2s_audio_play_data(pcm_data, count);
     ESP_LOGI(TAG, "Success play %d samples!", count);
     i2s_audio_convert_data(pcm_data, pcm16_data, count);
+
+    observe_plane_data_report(pcm16_data, OBSERVE_DATA_PCM16, count);
+
     ESP_LOGI(TAG, "Success convert %d samples!", count);
 }
 
