@@ -1,6 +1,8 @@
 idf_component_register(
     SRCS
         "execute_plane.c"
+        "mfcc_feature.c"
+        "test_mfcc_feature.c"
     INCLUDE_DIRS
          "."
     PRIV_REQUIRES

@@ -7,6 +7,7 @@
 #include "support_plane.h"
 #include "observe_plane.h"
 #include "execute_plane.h"
+#include "test_mfcc_feature.h"
 
 static const char *TAG = "EXECUTE_PLANE";
 
@@ -47,5 +48,7 @@ esp_err_t execute_plane_init(void)
     gpio_button_set_callback_func(0, application_button_boot_callback);
     gpio_button_set_callback_func(1, application_button_up_callback);
     gpio_button_set_callback_func(2, application_button_down_callback);
+
+    test_mfcc_process();
     return ESP_OK;
 }
