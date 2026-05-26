@@ -7,7 +7,7 @@
 #include "support_plane.h"
 #include "observe_plane.h"
 #include "execute_plane.h"
-#include "mfcc_feature.h"
+#include "dsp_mfcc_feature.h"
 #include "test_mfcc_feature.h"
 
 static const char *TAG = "EXECUTE_PLANE";
@@ -23,11 +23,11 @@ esp_err_t pcm16_mfcc_preprocess(int16_t *input_pcm, int count)
     int16_t *iptr = input_pcm;
     float *optr = (float *)(input_pcm + count);
 
-    for (int i = 0; i < MFCC_COEF_FRAME; i++)
+    for (int i = 0; i < DSP_MFCC_COEF_FRAME; i++)
     {
-        mfcc_feature_frame_process(iptr, optr);
-        iptr += MFCC_HOP_LENGTH;
-        optr += MFCC_COEF_COUNT;
+        dsp_mfcc_frame_process(iptr, optr);
+        iptr += DSP_MFCC_HOP_SIZE;
+        optr += DSP_MFCC_COEF_SIZE;
     }
     return ESP_OK;
 }

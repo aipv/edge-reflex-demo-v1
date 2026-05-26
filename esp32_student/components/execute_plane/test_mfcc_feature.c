@@ -1,6 +1,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "mfcc_feature.h"
+#include "dsp_mfcc_feature.h"
 #include "test_mfcc_feature.h"
 
 static const char *TAG = "TEST_MFCC_FEATURE";
@@ -100,8 +100,8 @@ void print_int8_1274(int8_t *values)
 
 void test_mfcc_process(void)
 {
-    mfcc_feature_init();
-    mfcc_feature_frame_process(test_pcm16_512, mfcc_output);
+    dsp_mfcc_init();
+    dsp_mfcc_frame_process(test_pcm16_512, mfcc_output);
     ESP_LOGI(TAG, "MFCC Output %f %f %f %f %f %f %f %f %f %f %f %f %f", mfcc_output[0],
         mfcc_output[1], mfcc_output[2], mfcc_output[3], mfcc_output[4], mfcc_output[5], mfcc_output[6], 
         mfcc_output[7], mfcc_output[8], mfcc_output[9], mfcc_output[10], mfcc_output[11], mfcc_output[12]);
