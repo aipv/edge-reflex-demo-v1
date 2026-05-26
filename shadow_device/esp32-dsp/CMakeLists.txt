@@ -30,7 +30,7 @@ target_include_directories(test_dsp_fft PUBLIC
 )
 target_link_libraries(test_dsp_fft esp_dsp_fft -lm)
 
-add_executable(test_dsp_mfcc dsp_mfcc/dsp_mfcc_feature.c tests/test_dsp_mfcc_feature.c)
+add_executable(test_dsp_mfcc dsp_mfcc/dsp_mfcc_feature.c dsp_mfcc/dsp_mfcc_mel.c tests/test_dsp_mfcc_feature.c)
 target_include_directories(test_dsp_mfcc PUBLIC 
     ${ESP32_DSP_ROOT}/fft/include
     ${ESP32_DSP_ROOT}/common/include
