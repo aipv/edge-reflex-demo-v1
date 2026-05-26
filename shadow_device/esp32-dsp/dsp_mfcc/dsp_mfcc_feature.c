@@ -1,10 +1,12 @@
 #include <stddef.h>
 #include <string.h>
 #include <math.h>
-#include "esp_fake.h"
-#include "dsp_mfcc_const.h"
-#include "dsp_mfcc_feature.h"
 #include "dsps_fft2r.h"
+#include "dsp_mfcc_feature.h"
+#include "dsp_mfcc_hann.h"
+#include "dsp_mfcc_mel.h"
+#include "dsp_mfcc_dct.h"
+#include "esp_fake.h"
 
 static const char *TAG = "DSP_MFCC_PIPELINE";
 
@@ -36,13 +38,26 @@ int dsp_mfcc_frame_process(int16_t *input_pcm, float *output_coef)
     {
         mfcc_mag_output[k] = (mfcc_fft_data[2*k] * mfcc_fft_data[2*k] + mfcc_fft_data[2*k+1] * mfcc_fft_data[2*k+1]) / DSP_MFCC_FFT_SIZE;
     }
-
+/*
     for (int m = 0; m < DSP_MFCC_MEL_SIZE; m++)
     {
         float sum = 0.0f;
         for (int k = 0; k < DSP_MFCC_MAG_SIZE; k++)
             sum += mfcc_mag_output[k] * mel_filterbank[m][k];
         mfcc_mel_output[m] = logf(sum + 1e-10f); // log-mel
+    }
+*/
+    for (int m = 0; m < DSP_MFCC_MEL_SIZE; m++)
+    {
+        const dsp_mel_filter_t *f = &dsp_mel_filters[m];
+        const float *w = f->weights;
+
+        float sum = 0.0f;
+        for (int i = 0; i < f->length; i++)
+        {
+            sum += mfcc_mag_output[f->start_bin + i] * w[i];
+        }
+        mfcc_mel_output[m] = logf(sum + 1e-10f);
     }
 
     for (int k = 0; k < DSP_MFCC_COEF_SIZE; k++)
