@@ -16,7 +16,8 @@ extern "C" {
 #define DSP_MFCC_MAG_SIZE    256
 #define DSP_MFCC_MEL_SIZE    40
 #define DSP_MFCC_COEF_SIZE   13
-#define DSP_MFCC_COEF_COUNT  98 
+#define DSP_MFCC_COEF_FRAME  98
+#define DSP_MFCC_HOP_SIZE    160
 
 /* ====================================================================================================
  * DSP mfcc init
