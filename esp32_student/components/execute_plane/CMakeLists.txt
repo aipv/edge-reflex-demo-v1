@@ -1,9 +1,8 @@
 idf_component_register(
     SRCS
-        "main.c"
+        "execute_plane.c"
     INCLUDE_DIRS
          "."
     PRIV_REQUIRES
         support_plane
-        execute_plane
 )

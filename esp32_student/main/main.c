@@ -5,12 +5,16 @@
  */
 
 #include "support_plane.h"
+#include "execute_plane.h"
 
 static const char *TAG = "MAIN_APP";
 
 void app_main(void)
 {
     support_plane_init();
+    ESP_LOGI(TAG, "support_plane_init() Done!");
+
+    execute_plane_init();
     ESP_LOGI(TAG, "support_plane_init() Done!");
 
     while (1)
