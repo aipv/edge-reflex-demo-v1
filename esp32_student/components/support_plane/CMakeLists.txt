@@ -1,19 +1,25 @@
 idf_component_register(
     SRCS
+        "gpio_button.c"
+        "i2s_audio.c"
         "wifi_station.c"
+        "network_socket.c"
         "mqtt_client_app.c"
         "ota_http_client.c"
+        "support_plane.c"
     INCLUDE_DIRS
          "."
     PRIV_REQUIRES
         nvs_flash
+        esp_driver_gpio
+        esp_driver_i2s
         esp_timer
         esp_driver_gpio
         esp_wifi
         esp_netif
         esp_http_server
-        mqtt
-        app_update
         esp_http_client
         esp_https_ota
+        app_update
+        mqtt
 )
