@@ -38,15 +38,7 @@ int dsp_mfcc_frame_process(int16_t *input_pcm, float *output_coef)
     {
         mfcc_mag_output[k] = (mfcc_fft_data[2*k] * mfcc_fft_data[2*k] + mfcc_fft_data[2*k+1] * mfcc_fft_data[2*k+1]) / DSP_MFCC_FFT_SIZE;
     }
-/*
-    for (int m = 0; m < DSP_MFCC_MEL_SIZE; m++)
-    {
-        float sum = 0.0f;
-        for (int k = 0; k < DSP_MFCC_MAG_SIZE; k++)
-            sum += mfcc_mag_output[k] * mel_filterbank[m][k];
-        mfcc_mel_output[m] = logf(sum + 1e-10f); // log-mel
-    }
-*/
+
     for (int m = 0; m < DSP_MFCC_MEL_SIZE; m++)
     {
         const dsp_mel_filter_t *f = &dsp_mel_filters[m];
