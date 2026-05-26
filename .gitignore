@@ -65,3 +65,6 @@ sdkconfig
 dataset/
 *.bin
 *.pcm
+
+# python 
+__pycache__/
